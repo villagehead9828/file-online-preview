@@ -28,39 +28,68 @@ import java.util.UUID;
  */
 @RestController
 public class FileController {
+	
     @Value("${file.dir}")
     String fileDir;
+    
     @Autowired
     FileUtils fileUtils;
+    
     String demoDir = "demo";
+    
     String demoPath = demoDir + File.separator;
 
+    /**
+     * 
+     * 
+     * @param file
+     * @param request
+     * @return
+     * @throws JsonProcessingException
+     */
     @RequestMapping(value = "fileUpload", method = RequestMethod.POST)
     public String fileUpload(@RequestParam("file") MultipartFile file,
                              HttpServletRequest request) throws JsonProcessingException {
+    	
         String fileName = file.getOriginalFilename();
+        
         // 判断该文件类型是否有上传过，如果上传过则提示不允许再次上传
         if (existsTypeFile(fileName)) {
             return new ObjectMapper().writeValueAsString(new ReturnResponse<String>(1, "每一种类型只可以上传一个文件，请先删除原有文件再次上传", null));
         }
+        
         File outFile = new File(fileDir + demoPath);
+        
         if (!outFile.exists()) {
             outFile.mkdirs();
         }
+        
         try(InputStream in = file.getInputStream();
             OutputStream ot = new FileOutputStream(fileDir + demoPath + fileName)){
+        	
             byte[] buffer = new byte[1024];
+            
             int len;
+            
             while ((-1 != (len = in.read(buffer)))) {
                 ot.write(buffer, 0, len);
             }
+            
             return new ObjectMapper().writeValueAsString(new ReturnResponse<String>(0, "SUCCESS", null));
+       
         } catch (IOException e) {
             e.printStackTrace();
             return new ObjectMapper().writeValueAsString(new ReturnResponse<String>(1, "FAILURE", null));
         }
     }
 
+    /**
+     * 
+     * 
+     * @param fileName
+     * @return
+     * @throws JsonProcessingException
+     */
     @RequestMapping(value = "deleteFile", method = RequestMethod.GET)
     public String deleteFile(String fileName) throws JsonProcessingException {
         if (fileName.contains("/")) {
@@ -73,6 +102,12 @@ public class FileController {
         return new ObjectMapper().writeValueAsString(new ReturnResponse<String>(0, "SUCCESS", null));
     }
 
+    /**
+     * 
+     * 
+     * @return
+     * @throws JsonProcessingException
+     */
     @RequestMapping(value = "listFiles", method = RequestMethod.GET)
     public String getFiles() throws JsonProcessingException {
         List<Map<String, String>> list = Lists.newArrayList();
@@ -83,6 +118,12 @@ public class FileController {
         return new ObjectMapper().writeValueAsString(list);
     }
 
+    /**
+     * 
+     * 
+     * @param name
+     * @return
+     */
     private String getFileName(String name) {
         String suffix = name.substring(name.lastIndexOf("."));
         String nameNoSuffix = name.substring(0, name.lastIndexOf("."));

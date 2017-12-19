@@ -1,18 +1,20 @@
 package com.yudianbank.utils;
 
-import com.sun.star.document.UpdateDocMode;
-import com.yudianbank.extend.ControlDocumentFormatRegistry;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.artofsolving.jodconverter.OfficeDocumentConverter;
 import org.artofsolving.jodconverter.office.DefaultOfficeManagerConfiguration;
 import org.artofsolving.jodconverter.office.OfficeManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
+import com.sun.star.document.UpdateDocMode;
+import com.yudianbank.extend.ControlDocumentFormatRegistry;
 
 /**
  * 创建文件转换器
@@ -25,6 +27,7 @@ public class ConverterUtils {
 
     @Value("${office.home}")
     String officeHome;
+    
 //    OpenOfficeConnection connection;
     OfficeManager officeManager;
 
@@ -43,6 +46,11 @@ public class ConverterUtils {
         // configuration.setTaskQueueTimeout(1000 * 60 * 60 * 24L);//
     }
 
+    /**
+     * 
+     * 
+     * @return
+     */
     public OfficeDocumentConverter getDocumentConverter() {
         OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager, new ControlDocumentFormatRegistry());
         converter.setDefaultLoadProperties(getLoadProperties());
@@ -60,7 +68,8 @@ public class ConverterUtils {
 
     @PreDestroy
     public void destroyOfficeManager(){
-        if (null != officeManager && officeManager.isRunning()) {
+//        if (null != officeManager && officeManager.isRunning()) {
+    	if (null != officeManager) {
             officeManager.stop();
         }
     }

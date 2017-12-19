@@ -1,0 +1,42 @@
+server:
+  port: 8012
+  tomcat:
+    uri-encoding: UTF-8
+
+spring:
+# Freemarker 配置
+  freemarker:
+    template-loader-path: classpath:/web
+    cache: false
+    charset: UTF-8
+    check-template-location: true
+    content-type: text/html
+    expose-request-attributes: true
+    expose-session-attributes: true
+    request-context-attribute: request
+    suffix: .ftl
+  resources:
+    static-locations: 
+      - classpath:/META-INF/resources/
+      - classpath:/resources/
+      - classpath:/static/
+      - classpath:/public/
+      - file:${file.dir}
+# 文件上传限制
+  http:
+    multipart:
+      max-file-size: 100MB
+    encoding:
+      charset: utf8
+# spring Redisson配置
+  redisson:
+    address: localhost:6379
+
+# property属性
+##资源映射路径(因为jar方式运行的原因)
+file.dir: D:/temp/file-online-preview/
+## openoffice相关配置
+office.home: C:/Program Files (x86)/OpenOffice 4
+converted.file.charset: GBK
+## 支持的类文本格式的文件类型
+simText: txt,html,xml,java,properties,mp3,mp4,sql

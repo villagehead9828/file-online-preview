@@ -12,13 +12,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class SimTextUtil {
+	
     @Value("${file.dir}")
     String fileDir;
+    
     @Autowired
     DownloadUtils downloadUtils;
 
     public ReturnResponse<String> readSimText(String url, String fileName, String needEncode){
+    	
         ReturnResponse<String> response = downloadUtils.downLoad(url, "txt", fileName, needEncode);
+        
         return response;
     }
 }

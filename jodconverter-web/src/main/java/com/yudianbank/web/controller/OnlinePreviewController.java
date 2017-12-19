@@ -20,16 +20,22 @@ import java.util.Arrays;
  */
 @Controller
 public class OnlinePreviewController {
+	
     @Autowired
     private OfficeToPdf officeToPdf;
+    
     @Autowired
     FileUtils fileUtils;
+    
     @Autowired
     DownloadUtils downloadUtils;
+    
     @Autowired
     ZipReader zipReader;
+    
     @Autowired
     SimTextUtil simTextUtil;
+    
     @Value("${simText}")
     String[] simText;
 //    @ApolloConfig
@@ -49,33 +55,55 @@ public class OnlinePreviewController {
      */
     @RequestMapping(value = "onlinePreview",method = RequestMethod.GET)
     public String onlinePreview(String url, String needEncode, Model model) throws UnsupportedEncodingException {
+    	
         // 路径转码
         String decodedUrl = URLDecoder.decode(url, "utf-8");
+        
         String type = typeFromUrl(url);
+        
         String suffix = suffixFromUrl(url);
+        
         // 抽取文件并返回文件列表
         String fileName = fileUtils.getFileNameFromURL(decodedUrl);
+        
         model.addAttribute("fileType", suffix);
+        
         if (type.equalsIgnoreCase("picture")) {
+        	
             model.addAttribute("imgurl", url);
+            
             return "picture";
+            
         } else if (type.equalsIgnoreCase("simText")){
+        	
             ReturnResponse<String> response = simTextUtil.readSimText(decodedUrl, fileName, needEncode);
+            
             if (0 != response.getCode()) {
+            	
                 model.addAttribute("msg", response.getMsg());
+                
                 return "fileNotSupported";
             }
+            
             model.addAttribute("ordinaryUrl", response.getMsg());
+            
             return "txt";
+            
         } else if(type.equalsIgnoreCase("pdf")){
+        	
             model.addAttribute("pdfUrl",url);
             return "pdf";
+            
         } else if(type.equalsIgnoreCase("compress")){
             // 抽取文件并返回文件列表
+        	
             String fileTree = null;
+            
             // 判断文件名是否存在(redis缓存读取)
             if (!StringUtils.hasText(fileUtils.getConvertedFile(fileName))) {
+            	
                 ReturnResponse<String> response = downloadUtils.downLoad(decodedUrl, suffix, fileName, needEncode);
+               
                 if (0 != response.getCode()) {
                     model.addAttribute("msg", response.getMsg());
                     return "fileNotSupported";
@@ -92,6 +120,7 @@ public class OnlinePreviewController {
             }else {
                 fileTree = fileUtils.getConvertedFile(fileName);
             }
+            
             System.out.println("返回文件tree》》》》》》》》》》》》》》》》》》》");
             if (null != fileTree) {
                 model.addAttribute("fileTree",fileTree);
@@ -100,38 +129,57 @@ public class OnlinePreviewController {
                 model.addAttribute("msg", "压缩文件类型不受支持，尝试在压缩的时候选择RAR4格式");
                 return "fileNotSupported";
             }
+            
         } else if ("office".equalsIgnoreCase(type)) {
+        	
             String pdfName = fileName.substring(0, fileName.lastIndexOf(".") + 1)
-                    + ((suffix.equalsIgnoreCase("xls") || suffix.equalsIgnoreCase("xlsx")) ?
-                    "html" : "pdf");
+                    + ((suffix.equalsIgnoreCase("xls") || suffix.equalsIgnoreCase("xlsx")) ? "html" : "pdf");
+            
             // 判断之前是否已转换过，如果转换过，直接返回，否则执行转换
             if (!fileUtils.listConvertedFiles().containsKey(pdfName)) {
+            	
                 String filePath = fileDir + fileName;
+                
                 if (!new File(filePath).exists()) {
+                	
                     ReturnResponse<String> response = downloadUtils.downLoad(decodedUrl, suffix, null, needEncode);
+                    
                     if (0 != response.getCode()) {
+                    	
                         model.addAttribute("msg", response.getMsg());
+                        
                         return "fileNotSupported";
                     }
+                    
                     filePath = response.getContent();
                 }
+                
                 String outFilePath = fileDir + pdfName;
+                
                 if (StringUtils.hasText(outFilePath)) {
+                	
                     officeToPdf.openOfficeToPDF(filePath, outFilePath);
+                    
                     File f = new File(filePath);
+                    
                     if (f.exists()) {
                         f.delete();
                     }
+                    
                     if (suffix.equalsIgnoreCase("xls")
                             || suffix.equalsIgnoreCase("xlsx")) {
                         // 对转换后的文件进行操作(改变编码方式)
+                    	
                         fileUtils.doActionConvertedFile(outFilePath);
                     }
+                    
                     // 加入缓存
                     fileUtils.addConvertedFile(pdfName, fileUtils.getRelativePath(outFilePath));
                 }
             }
+            
             model.addAttribute("pdfUrl", pdfName);
+            
             return "pdf";
         }else {
             model.addAttribute("msg", "系统还不支持该格式文件的在线预览，" + "如有需要请按下方显示的邮箱地址联系系统维护人员");
@@ -139,10 +187,20 @@ public class OnlinePreviewController {
         }
     }
 
+    /**
+     * 
+     * 
+     * @param url
+     * @return
+     */
     private String suffixFromUrl(String url) {
+    	
         String nonPramStr = url.substring(0, url.indexOf("?") != -1 ? url.indexOf("?"): url.length());
+        
         String fileName = nonPramStr.substring(nonPramStr.lastIndexOf("/") + 1);
+        
         String fileType = fileName.substring(fileName.lastIndexOf(".") + 1);
+        
         return fileType;
     }
 
@@ -152,18 +210,25 @@ public class OnlinePreviewController {
      * @return
      */
     private String typeFromUrl(String url) {
+    	
         String nonPramStr = url.substring(0, url.indexOf("?") != -1 ? url.indexOf("?"): url.length());
+        
         String fileName = nonPramStr.substring(nonPramStr.lastIndexOf("/") + 1);
+        
         String fileType = fileName.substring(fileName.lastIndexOf(".") + 1);
+        
         if (fileUtils.listPictureTypes().contains(fileType.toLowerCase())) {
             fileType = "picture";
         }
+        
         if (fileUtils.listArchiveTypes().contains(fileType.toLowerCase())) {
             fileType = "compress";
         }
+        
         if (fileUtils.listOfficeTypes().contains(fileType.toLowerCase())) {
             fileType = "office";
         }
+        
         if (Arrays.asList(simText).contains(fileType.toLowerCase())) {
             fileType = "simText";
         }

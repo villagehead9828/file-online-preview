@@ -10,9 +10,13 @@ import java.util.Properties;
 @EnableScheduling
 @ComponentScan(value = "com.yudianbank.*")
 public class FilePreviewApplication {
+	
 	public static void main(String[] args) {
+		
         Properties properties = System.getProperties();
+        
         System.out.println(properties.get("user.dir"));
+        
         SpringApplication.run(FilePreviewApplication.class, args);
 	}
 }

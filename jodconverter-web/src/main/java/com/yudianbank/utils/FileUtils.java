@@ -24,6 +24,7 @@ public class FileUtils {
 
     @Autowired
     RedissonClient redissonClient;
+    
     @Value("${file.dir}")
     String fileDir;
 
@@ -55,10 +56,14 @@ public class FileUtils {
      * @return
      */
     public String getFileNameFromURL(String url) {
+    	
         // 因为url的参数中可能会存在/的情况，所以直接url.lastIndexOf("/")会有问题
         // 所以先从？处将url截断，然后运用url.lastIndexOf("/")获取文件名
+    	
         String noQueryUrl = url.substring(0, url.indexOf("?") != -1 ? url.indexOf("?"): url.length());
+        
         String fileName = noQueryUrl.substring(noQueryUrl.lastIndexOf("/") + 1);
+        
         return fileName;
     }
 
